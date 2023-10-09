@@ -27,7 +27,7 @@ describe("Testando signup", () => {
       id: "id-mock",
       username:"Ciclana",
       email:"ciclana@email.com",
-      role:"ADMIN",
+      role:"NORMAL",
       token: "token-mock"
     })
   })

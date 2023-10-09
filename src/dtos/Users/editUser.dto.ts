@@ -1,21 +1,20 @@
 import z from 'zod'
+import { UserModel } from '../../models/User'
 
 export interface EditUserInputDTO {
     idToEdit: string,
-    username?: string,
-    email?: string,
-    password?: string,
+    username?: string | undefined,
+    email?: string | undefined,
+    password?: string | undefined,
     token: string
 }
 
-export interface EditUsertOutputDTO {
-        message: string
-}
+export type EditUsertOutputDTO = UserModel[] | UserModel
 
 export const EditUserSchema = z.object({
     idToEdit: z.string().min(1),
-    username: z.string().min(2).optional(),
-    email: z.string().min(11).optional(),
-    password: z.string().min(6).optional(),
+    username: z.string().optional(),
+    email: z.string().optional(),
+    password: z.string().optional(),
     token: z.string().min(1)
 }).transform(data => data as EditUserInputDTO)

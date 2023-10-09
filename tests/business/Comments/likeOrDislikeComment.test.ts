@@ -1,10 +1,11 @@
-import { CommentBusiness } from "../../../src/business/CommentBusiness"
 import { ZodError } from "zod"
+import { PostDatabaseMock } from "../../mocks/PostDataBaseMock"
+import { CommentBusiness } from "../../../src/business/CommentBusiness"
 import { IdGeneratorMock } from "../../../tests/mocks/IdGeneratorMock"
 import { TokenManagerMock } from "../../../tests/mocks/TokenManagerMock"
 import { CommentDatabaseMock } from "../../../tests/mocks/CommentDatabaseMock"
 import { LikeOrDislikeCommentSchema } from "../../../src/dtos/Comments/likeOrDislike.dto"
-import { PostDatabaseMock } from "../../mocks/PostDataBaseMock"
+
 
 describe("Testando likeOrDislikeComment", () => {
   const comentBusiness = new CommentBusiness(
@@ -16,7 +17,7 @@ describe("Testando likeOrDislikeComment", () => {
 
   test("deve fazer uma busca pelo array de comentários e dar um like no comentário", async () => {
     const input = LikeOrDislikeCommentSchema.parse({
-      commentId: "comment01",
+      id: "comment01",
       like: true,
       token: "token-mock-astrodev"
     })
@@ -29,7 +30,7 @@ describe("Testando likeOrDislikeComment", () => {
 
   test("deve fazer uma busca pelo array de comentários e dar um dislike no comentário", async () => {
     const input = LikeOrDislikeCommentSchema.parse({
-      commentId: "comment01",
+      id: "comment01",
       like: false,
       token: "token-mock-astrodev"
     })
@@ -42,13 +43,13 @@ describe("Testando likeOrDislikeComment", () => {
   test("deve disparar erro na ausência de commentId", async () => {
     try {
       const input = LikeOrDislikeCommentSchema.parse({
-        commentId: "",
+        id: "",
         like: true,
         token: "token-mock-astrodev"
       })
     } catch (error) {
       if (error instanceof ZodError) {
-        expect("commentId: String must contain at least 1 character(s)")
+        expect("id: String must contain at least 1 character(s)")
       }
     }
   })
@@ -56,7 +57,7 @@ describe("Testando likeOrDislikeComment", () => {
   test("deve disparar erro quando like não for boolean", async () => {
     try {
       const input = LikeOrDislikeCommentSchema.parse({
-        commentId: "comment01",
+        id: "comment01",
         like: "true",
         token: "token-mock-astrodev"
       })
@@ -70,7 +71,7 @@ describe("Testando likeOrDislikeComment", () => {
   test("deve disparar erro na ausência de token", async () => {
     try {
       const input = LikeOrDislikeCommentSchema.parse({
-        commentId: "comment01",
+        id: "comment01",
         like: true,
         token: ""
       })
@@ -89,7 +90,7 @@ describe("Testando likeOrDislikeComment", () => {
       })
     } catch (error) {
       if (error instanceof ZodError) {
-        expect("commentId: Required")
+        expect("id: Required")
       }
     }
   })
@@ -97,7 +98,7 @@ describe("Testando likeOrDislikeComment", () => {
   test("deve disparar erro na ausência do input like", async () => {
     try {
       const input = LikeOrDislikeCommentSchema.parse({
-        commentId: "comment01",
+        id: "comment01",
         token: "token-mock-astrodev"
       })
     } catch (error) {
@@ -110,7 +111,7 @@ describe("Testando likeOrDislikeComment", () => {
   test("deve disparar erro na ausência do input token", async () => {
     try {
       const input = LikeOrDislikeCommentSchema.parse({
-        commentId:"comment01",
+        id:"comment01",
         like: true
       })
     } catch (error) {

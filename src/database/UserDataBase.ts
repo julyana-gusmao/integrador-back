@@ -1,5 +1,5 @@
 import { UserDB } from "../models/User";
-import { BaseDatabase } from "./BaseDataBase";
+import { BaseDatabase } from "./BaseDatabase";
 
 export class UserDatabase extends BaseDatabase {
 
@@ -62,15 +62,6 @@ export class UserDatabase extends BaseDatabase {
   }
 
   public updateUserById = async (
-    id: string, userDB: UserDB
-  ): Promise<void> => {
-    await BaseDatabase
-      .connection(UserDatabase.TABLE_USERS)
-      .update(userDB)
-      .where({ id })
-  }
-
-  public updateUserRoleById = async (
     id: string, userDB: UserDB
   ): Promise<void> => {
     await BaseDatabase

@@ -11,8 +11,6 @@ import { SignupInputDTO, SignupOutputDTO } from "../dtos/Users/signup.dto"
 import { EditUserInputDTO, EditUsertOutputDTO } from "../dtos/Users/editUser.dto"
 import { GetUsersInputDTO, GetUsersOutputDTO } from "../dtos/Users/getUsers.dto"
 import { DeleteUserInputDTO, DeleteUserOutputDTO } from "../dtos/Users/deleteUser.dto"
-import { ChangeUserRoleInputDTO, ChangeUserRoleOutputDTO } from '../dtos/Users/changeUserRole.dto'
-
 
 export class UserBusiness {
 
@@ -31,7 +29,7 @@ export class UserBusiness {
     const id = this.idGenerator.generate()
     const hashedPassword = await this.hashManager.hash(password)
     const userDBExists = await this.userDatabase.findUserByEmail(email)
-    const users = await this.userDatabase.findUsers(username)
+    const users = await this.userDatabase.findUsers(undefined)
 
     if (userDBExists) {
       throw new Error("Email já cadastrado")
@@ -172,9 +170,15 @@ export class UserBusiness {
       throw new UnauthorizedError("Somente o dono desta conta pode editar os dados da mesma.")
     }
 
-    email && user.setEmail(email)
-    username && user.setUsername(username)
-    password && user.setPassword(password)
+    if(email !== undefined && email.length > 11) {
+      email && user.setEmail(email)
+    }
+    if(username !== undefined && username.length > 2) {
+      username && user.setUsername(username) 
+    }
+    if(password !== undefined && password.length > 6) {
+      password && user.setPassword(password)
+    }
 
     const updatedUserDB: UserDB = {
       id: user.getId(),
@@ -184,71 +188,19 @@ export class UserBusiness {
       role: user.getRole(),
       created_at: user.getCreatedAt()
     }
+
+    const newUser = new User(
+      updatedUserDB.id,
+      updatedUserDB.username,
+      updatedUserDB.email,
+      updatedUserDB.password,
+      updatedUserDB.role,
+      updatedUserDB.created_at
+    )
 
     await this.userDatabase.updateUserById(idToEdit, updatedUserDB)
 
-    const output = {
-      message: "Usuário editado com sucesso"
-    }
-
-    return output
-
-  }
-
-
-  public editUserRoleById = async (
-    input: ChangeUserRoleInputDTO
-  ): Promise<ChangeUserRoleOutputDTO> => {
-
-    const {
-      id,
-      role,
-      token
-    } = input
-
-    const userToEditDB = await this.userDatabase.findUserById(id)
-
-    const payload = this.tokenManager.getPayload(token)
-
-    if (payload === null) {
-      throw new UnauthorizedError("Token inválido")
-    }
-
-    const user = new User(
-      userToEditDB.id,
-      userToEditDB.username,
-      userToEditDB.email,
-      userToEditDB.password,
-      userToEditDB.role,
-      userToEditDB.created_at
-    )
-
-    role && user.setRole(role)
-
-    const updatedUserDB: UserDB = {
-      id: user.getId(),
-      username: user.getUsername(),
-      email: user.getEmail(),
-      password: user.getPassword(),
-      role: user.getRole(),
-      created_at: user.getCreatedAt()
-    }
-
-    if (payload.role === USER_ROLES.ADMIN) {
-      await this.userDatabase.updateUserRoleById(id, updatedUserDB)
-    } else if (userToEditDB.id === id) {
-      await this.userDatabase.updateUserRoleById(id, updatedUserDB)
-    } else {
-      throw new UnauthorizedError("Somente o administrador ou o dono da conta pode executar essa ação.")
-    }
-
-    const output = {
-      id: user.getId(),
-      username: user.getUsername(),
-      role: user.getRole(),
-    }
-
-    return output
+    return newUser.toBusinessModel()
 
   }
 

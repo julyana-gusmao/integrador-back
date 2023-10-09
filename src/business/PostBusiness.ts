@@ -41,7 +41,7 @@ export class PostBusiness {
       0,
       0,
       new Date().toISOString(),
-      new Date().toISOString(),
+      "",
       payload.id,
       payload.username
     )

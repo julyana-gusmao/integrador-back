@@ -1,7 +1,7 @@
 import express from "express"
 import { CommentBusiness } from "../business/CommentBusiness"
 import { CommentController } from "../controller/CommentController"
-import { CommentDatabase } from "../database/CommentDataBase"
+import { CommentDatabase } from "../database/CommentDatabase"
 import { IdGenerator } from "../services/idGenerator"
 import { TokenManager } from "../services/TokenManager"
 import { PostDatabase } from "../database/PostDataBase"
@@ -19,6 +19,5 @@ const commentController = new CommentController(
 
 commentRouter.get("/", commentController.getComments)
 commentRouter.post("/", commentController.createComment)
-commentRouter.put("/:id", commentController.editCommentByid)
 commentRouter.put("/:id/like", commentController.likeOrDislikeComment)
 commentRouter.delete("/:id", commentController.deleteCommentById)
