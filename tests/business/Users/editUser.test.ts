@@ -24,7 +24,11 @@ describe("Testando editUser", () => {
     const output = await userBusiness.editUserById(input)
 
     expect(output).toEqual({
-      message: "Usuário editado com sucesso"
+      createdAt: expect.any(String),
+      email: "astrodev@email.com",
+      id: "id-mock-astrodev",
+      role: "ADMIN",
+      username: "Astrodev"
     })
   })
 

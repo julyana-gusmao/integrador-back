@@ -1,18 +1,17 @@
-import { Comment, CommentDB, CommentModel } from "../models/Comment"
-import { CommentDatabase } from "../database/CommentDataBase"
+import { USER_ROLES } from "../models/User"
+import { PostDB, Post } from "../models/Post"
 import { PostDatabase } from "../database/PostDataBase"
-import { COMMENT_LIKE, LikeOrDislikeDB } from "../models/LikeComment"
 import { NotFoundError } from "../errors/NotFoundError"
-import { UnauthorizedError } from "../errors/UnauthorizedError"
 import { IdGenerator } from "../services/idGenerator"
 import { TokenManager } from "../services/TokenManager"
-import { USER_ROLES } from "../models/User"
-import { EditCommentInputDTO, EditCommentOutputDTO } from "../dtos/Comments/editComment.dto"
+import { CommentDatabase } from "../database/CommentDatabase"
+import { UnauthorizedError } from "../errors/UnauthorizedError"
+import { Comment, CommentDB, CommentModel } from "../models/Comment"
+import { COMMENT_LIKE, LikeOrDislikeDB } from "../models/LikeComment"
 import { GetCommentsInputDTO, GetCommentsOutputDTO } from "../dtos/Comments/getComments.dto"
 import { CreateCommentInputDTO, CreateCommentOutputDTO } from "../dtos/Comments/createComment.dto"
 import { DeleteCommentInputDTO, DeleteCommentOutputDTO } from "../dtos/Comments/deleteComment.dto"
 import { LikeOrDislikeCommentInputDTO, LikeOrDislikeCommentOutputDTO } from "../dtos/Comments/likeOrDislike.dto"
-import { PostDB, Post } from "../models/Post"
 
 
 export class CommentBusiness {
@@ -39,7 +38,7 @@ export class CommentBusiness {
     let CommentsDB = await this.CommentDatabase.findComments(content)
 
     const Comments = CommentsDB
-      .map((CommentWithCreator) => {
+      .map(CommentWithCreator => {
         const comment = new Comment(
           CommentWithCreator.id,
           CommentWithCreator.post_id,
@@ -80,12 +79,12 @@ export class CommentBusiness {
       0,
       0,
       new Date().toISOString(),
-      new Date().toISOString(),
+      "",
       payload.id,
       payload.username
     )
-    
-    const post = new Post (
+
+    const post = new Post(
       postDB.id,
       postDB.content,
       postDB.likes,
@@ -95,9 +94,9 @@ export class CommentBusiness {
       postDB.updated_at,
       postDB.creator_id,
       postDB.creator_username
-      )
+    )
 
-      post.addComment()
+    post.addComment()
 
     const newCommentDB: CommentDB = {
       id: newComment.getId(),
@@ -119,7 +118,7 @@ export class CommentBusiness {
       comments: post.getComments(),
       created_at: post.getCreatedAt(),
       updated_at: post.getUpdatedAt(),
-      }
+    }
 
     await this.CommentDatabase.insertComment(newCommentDB)
     await this.PostDatabase.updatePostById(postId, updatedPostDB)
@@ -141,83 +140,14 @@ export class CommentBusiness {
     return output
   }
 
-  public editComment = async (
-    input: EditCommentInputDTO
-  ): Promise<EditCommentOutputDTO> => {
-
-    const {
-      idToEdit,
-      content,
-      token
-    } = input
-
-    const payload = this.tokenManager.getPayload(token)
-
-    if (payload === null) {
-      throw new UnauthorizedError("Token inválido")
-    }
-
-    if (!idToEdit) {
-      throw new NotFoundError("Por favor, insira um id")
-    }
-
-    const CommentToEditDB = await this.CommentDatabase.findCommentById(idToEdit)
-
-    if (!CommentToEditDB) {
-      throw new NotFoundError("Comentário com suposto id não encontrado, insira um id válido")
-    }
-
-    const comment = new Comment(
-      CommentToEditDB.id,
-      CommentToEditDB.post_id,
-      CommentToEditDB.content,
-      CommentToEditDB.likes,
-      CommentToEditDB.dislikes,
-      CommentToEditDB.created_at,
-      new Date().toISOString(),
-      CommentToEditDB.creator_id,
-      CommentToEditDB.creator_username
-    )
-
-
-    content && comment.setContent(content)
-
-    const updateCommentDB: CommentDB = {
-      id: comment.getId(),
-      post_id: comment.getPostId(),
-      creator_id: comment.getCreatorId(),
-      content: comment.getContent(),
-      likes: comment.getLikes(),
-      dislikes: comment.getDislikes(),
-      created_at: comment.getCreatedAt(),
-      updated_at: comment.getUpdatedAt()
-    }
-
-    if (payload.role === USER_ROLES.ADMIN) {
-      await this.CommentDatabase.updateCommentById(idToEdit, updateCommentDB)
-    } else if (CommentToEditDB.creator_id === payload.id) {
-      await this.CommentDatabase.updateCommentById(idToEdit, updateCommentDB)
-    } else {
-      throw new UnauthorizedError("Somente o administrador ou dono da postagem podem acessar este recurso.")
-    }
-
-    const output = {
-      content: comment.getContent()
-    }
-
-    return output
-
-  }
-
   public deleteComment = async (
     input: DeleteCommentInputDTO
   ): Promise<DeleteCommentOutputDTO> => {
 
-    const { postId, idToDelete, token } = input
+    const { idToDelete, token } = input
 
-    const CommentToDeleteDB = await this.CommentDatabase.findCommentById(idToDelete)
+    const commentToDeleteDB = await this.CommentDatabase.findCommentById(idToDelete)
     const payload = this.tokenManager.getPayload(token)
-    const postDB = await this.PostDatabase.findPostById(postId)
 
     if (payload === null) {
       throw new UnauthorizedError("Token inválido")
@@ -227,44 +157,17 @@ export class CommentBusiness {
       throw new NotFoundError("Por favor, insira um id")
     }
 
-    if (!CommentToDeleteDB) {
+    if (!commentToDeleteDB) {
       throw new NotFoundError("'ID' não encontrado")
     }
 
     if (payload.role === USER_ROLES.ADMIN) {
       await this.CommentDatabase.deleteCommentById(idToDelete)
-    } else if (CommentToDeleteDB.creator_id === payload.id) {
+    } else if (commentToDeleteDB.creator_id === payload.id) {
       await this.CommentDatabase.deleteCommentById(idToDelete)
     } else {
       throw new UnauthorizedError("Somente o administrador ou dono do tópico podem acessar este recurso.")
     }
-
-    const post = new Post (
-      postDB.id,
-      postDB.content,
-      postDB.likes,
-      postDB.dislikes,
-      postDB.comments,
-      postDB.created_at,
-      postDB.updated_at,
-      postDB.creator_id,
-      postDB.creator_username
-      )
-
-      post.removeComment()
-
-    const newPostDB: PostDB = {
-      id: post.getId(),
-      creator_id: post.getCreatorId(),
-      content: post.getContent(),
-      likes: post.getLikes(),
-      dislikes: post.getDislikes(),
-      comments: post.getComments(),
-      created_at: post.getCreatedAt(),
-      updated_at: post.getUpdatedAt(),
-      }
-
-    await this.PostDatabase.insertPost(newPostDB)
 
     const output = {
       message: "Comentário deletado com sucesso",
@@ -276,7 +179,7 @@ export class CommentBusiness {
     input: LikeOrDislikeCommentInputDTO
   ): Promise<LikeOrDislikeCommentOutputDTO> => {
 
-    const { commentId, like, token } = input
+    const { id, like, token } = input
 
     const payload = this.tokenManager.getPayload(token)
 
@@ -284,7 +187,7 @@ export class CommentBusiness {
       throw new UnauthorizedError("Token inválido")
     }
 
-    const CommentDBwithCreator = await this.CommentDatabase.findCommentById(commentId)
+    const CommentDBwithCreator = await this.CommentDatabase.findCommentById(id)
 
     if (!CommentDBwithCreator) {
       throw new NotFoundError("Comentário não encontrado")
@@ -306,7 +209,7 @@ export class CommentBusiness {
 
     const likeDislikeDB: LikeOrDislikeDB = {
       user_id: payload.id,
-      comment_id: commentId,
+      comment_id: id,
       like: likeSQL
     }
 

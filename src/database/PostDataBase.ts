@@ -1,6 +1,6 @@
 import { LikeOrDislikeDB, POST_LIKE } from "../models/LikePost";
 import { PostDB, PostDBWithCreator, PostModel } from "../models/Post";
-import { BaseDatabase } from "./BaseDataBase";
+import { BaseDatabase } from "./BaseDatabase";
 import { UserDatabase } from "./UserDataBase";
 
 export class PostDatabase extends BaseDatabase {

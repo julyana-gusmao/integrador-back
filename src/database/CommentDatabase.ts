@@ -1,14 +1,13 @@
-import { LikeOrDislikeDB, COMMENT_LIKE } from "../models/LikeComment";
-import { CommentDB, CommentDBWithCreator } from "../models/Comment";
-import { BaseDatabase } from "./BaseDataBase";
+import { BaseDatabase } from "./BaseDatabase";
 import { UserDatabase } from "./UserDataBase";
 import { PostDatabase } from "./PostDataBase";
-import { Post, PostDB } from "../models/Post";
+import { LikeOrDislikeDB, COMMENT_LIKE } from "../models/LikeComment";
+import { CommentDB, CommentDBWithCreator } from "../models/Comment";
 
 export class CommentDatabase extends BaseDatabase {
 
   public static TABLE_COMMENTS = "comments";
-  public static TABLE_LIKES_DISLIKES = "like_dislike_comments";
+  public static TABLE_LIKES_DISLIKES = "likes_dislikes_comments";
 
   public insertComment = async (
     newCommentDB: CommentDB
@@ -146,16 +145,17 @@ export class CommentDatabase extends BaseDatabase {
     return result as CommentDBWithCreator | undefined
   }
 
-  public updateCommentById = async (
-    idToEdit: string, TopicDB: CommentDB
+ public updateCommentById = async (
+    id: string, TopicDB: CommentDB
   ): Promise<void> => {
 
     await BaseDatabase
       .connection(CommentDatabase.TABLE_COMMENTS)
       .update(TopicDB)
-      .where({ id: idToEdit })
+      .where({ id: id })
   }
 
+  
   public deleteCommentById = async (
     idToDelete: string
   ): Promise<void> => {
